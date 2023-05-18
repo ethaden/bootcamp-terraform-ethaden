@@ -140,3 +140,40 @@ variable "internal-vpc-security-group-id" {
 variable "external-vpc-security-group-id" {
   type = string
 }
+
+# ethaden
+
+variable "public_ssh_key" {
+  default = ""
+  type = string
+  description = "Your public SSH key. If not specified, trying to find one in HOME/.ssh"
+}
+variable "jumphost_instance_type" {
+  default = "t2.micro"
+}
+
+variable "jumphost_disk_size_gb" {
+  default = "20"
+}
+
+variable "username" {
+  type = string
+}
+variable "instance_initial_apt_packages" {
+  type = string
+  default = ""
+  description = "Space separated list of Ubuntu APT packages to install during initialization of the instance"
+}
+
+variable "instance_initial_snap_packages" {
+  type = string
+  default = ""
+  description = "Space separated list of Ubuntu SNAP packages to install during initialization of the instance"
+}
+
+
+variable "instance_initial_classic_snap_packages" {
+  type = string
+  default = ""
+  description = "Space separated list of Ubuntu classic SNAP packages to install during initialization of the instance (with snap install --classic)"
+}
