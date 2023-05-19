@@ -1,0 +1,36 @@
+#install.yml
+---
+- name: Add APT key for Grafana
+  apt_key:
+    url: https://packages.grafana.com/gpg.key
+
+- name: Add Grafana APT repository
+  apt_repository:
+    repo: deb https://packages.grafana.com/oss/deb stable main
+    state: present
+    filename: "{{ service }}"
+
+- name: Update APT cache
+  apt:
+    update_cache: yes
+
+- name: Install Grafana package
+  apt:
+    name: "{{ service }}"
+    state: present
+
+- name: Install Prometheus Datasource
+  ansible.builtin.template:
+    src: ./templates/datasources/datasource.j2
+    dest: /etc/grafana/provisioning/datasources/datasource.yaml
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Copy Confluent Platform Dashboards
+  ansible.builtin.copy:
+    src: ./files/dashboards/
+    dest: /etc/grafana/provisioning/dashboards
+    owner: root
+    group: root
+    mode: '0644'

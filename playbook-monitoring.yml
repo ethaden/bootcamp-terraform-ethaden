@@ -1,0 +1,7 @@
+- hosts: prometheus
+  roles:
+  - prometheus.prometheus.prometheus
+  - prometheus.prometheus.node_exporter
+- hosts: grafana
+  roles:
+    - grafana
