@@ -50,3 +50,45 @@ optional arguments:
 ```
 
 Sample usage: `python3 stx-instances.py start --no-dry-run`
+
+## Install Ansible on the jumphost
+
+Install Ansible on the jumphost according to the website. Then, install these collections:
+
+```bash
+ansible-galaxy collection install confluent.platform
+ansible-galaxy collection install ansible.posix
+ansible-galaxy collection install community.general
+```
+
+create a file `~/.ansible.cfg` with this content:
+
+```
+[defaults]
+host_key_checking = False
+hash_behaviour = merge
+```
+
+## Install Confluent Platform via Ansible
+
+Copy the file `hosts.yml` to the jumphost and run it there:
+
+```
+ansible-playbook -i hosts.yml confluent.platform.all
+```
+
+
+## Install Prometheus and Grafana
+
+Install prometheus collection:
+
+```bash
+ansible-galaxy collection install prometheus.prometheus
+```
+
+Copy the file `playbook-monitoring.yml` to the jumphost, then execute it there:
+
+```bash
+ansible-playbook -i hosts.yml playbook-monitoring.yml
+```
+

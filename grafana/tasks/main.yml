@@ -1,0 +1,6 @@
+---
+# tasks file for grafana
+# See https://medium.com/@nanditasahu031/ansible-roles-for-prometheus-grafana-and-nginx-reverse-proxy-part-2-4660030be32f
+- include: install.yml
+- include: grafana_status.yml
+

@@ -18,6 +18,8 @@ resource "local_file" "ansible_inventory" {
       kafka_rests = aws_instance.rest.*.private_dns
       schema_registries = aws_instance.schema.*.private_dns
       control_centers = aws_instance.control-center.*.private_dns
+      prometheus = aws_instance.prometheus.*.private_dns
+      grafana = aws_instance.grafana.*.private_dns
     }
   )
   filename = var.inventory_file
@@ -74,6 +76,11 @@ resource "local_file" "hosts_json" {
         aws_instance.control-center.*.private_dns,
         aws_route53_record.control-center.*.name,
         [ for name in aws_route53_record.control-center.*.name : "${name}.${data.aws_route53_zone.bootcamp.name}" ]
+      ]
+      prometheus = [
+        aws_instance.prometheus.*.private_dns,
+        aws_route53_record.prometheus.*.name,
+        [ for name in aws_route53_record.prometheus.*.name : "${name}.${data.aws_route53_zone.bootcamp.name}" ]
       ]
     }
   )

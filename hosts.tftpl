@@ -5,53 +5,133 @@ all:
     ansible_user: ubuntu
     ansible_become: true
     ansible_ssh_private_key_file: <<path-to-pem-file>>
-
-zookeeper:
-    hosts:
+kafka:
+  children:
+    zookeeper:
+      hosts:
 %{ for addr in zookeepers ~}
         ${addr}:
 %{ endfor ~}
 
-kafka_controller:
-    hosts:
+    kafka_controller:
+      hosts:
 %{ for addr in kafka_controllers ~}
         ${addr}:
 %{ endfor ~}
 
-kafka_broker:
-    hosts:
+    kafka_broker:
+      hosts:
 %{ for addr,az in zipmap(kafka_brokers, kafka_broker_azs) ~}
         ${addr}:
-            kafka_broker_custom_properties:
-                broker.rack: ${az}
+          kafka_broker_custom_properties:
+            broker.rack: ${az}
 %{ endfor ~}
 
-kafka_connect:
-    hosts:
+    kafka_connect:
+      hosts:
 %{ for addr in kafka_connects ~}
         ${addr}:
 %{ endfor ~}
 
-schema_registry:
-    hosts:
+    schema_registry:
+      hosts:
 %{ for addr in schema_registries ~}
         ${addr}:
 %{ endfor ~}
 
-kafka_rest:
-    hosts:
+    kafka_rest:
+      hosts:
 %{ for addr in kafka_rests ~}
         ${addr}:
 %{ endfor ~}
 
-ksql:
-    hosts:
+    ksql:
+      hosts:
 %{ for addr in ksqls ~}
         ${addr}:
 %{ endfor ~}
 
-control_center:
-    hosts:
+    control_center:
+      hosts:
 %{ for addr in control_centers ~}
         ${addr}:
+%{ endfor ~}
+monitoring:
+  children:
+    prometheus:
+      hosts:
+%{ for addr in prometheus ~}
+        ${addr}:
+          prometheus_scrape_configs:
+            - job_name: "zookeeper"
+              static_configs:
+                - targets:
+%{ for target in zookeepers ~}
+                    - ${target}:8079
+%{ endfor ~}
+                  labels:
+                    env: "dev"
+              relabel_configs:
+                - source_labels: [__address__]
+                  target_label: instance
+                  regex: "([^:]+)(:[0-9]+)?"
+                  replacement: "${"$"}{1}"
+            - job_name: "kafka-broker"
+              static_configs:
+                - targets:
+%{ for target in kafka_brokers ~}
+                    - ${target}:8080
+%{ endfor ~}
+                  labels:
+                    env: "dev"
+              relabel_configs:
+                - source_labels: [__address__]
+                  target_label: instance
+                  regex: "([^:]+)(:[0-9]+)?"
+                  replacement: "${"$"}{1}"
+            - job_name: "schema-registry"
+              static_configs:
+                - targets:
+%{ for target in schema_registries ~}
+                    - ${target}:8078
+%{ endfor ~}
+                  labels:
+                    env: "dev"
+              relabel_configs:
+                - source_labels: [__address__]
+                  target_label: instance
+                  regex: "([^:]+)(:[0-9]+)?"
+                  replacement: "${"$"}{1}"
+            - job_name: "kafka-connect"
+              static_configs:
+                - targets:
+%{ for target in kafka_connects ~}
+                    - ${target}:8077
+%{ endfor ~}
+                  labels:
+                    env: "dev"
+              relabel_configs:
+                - source_labels: [__address__]
+                  target_label: instance
+                  regex: "([^:]+)(:[0-9]+)?"
+                  replacement: "${"$"}{1}"
+            - job_name: "ksqldb"
+              static_configs:
+                - targets:
+%{ for target in ksqls ~}
+                    - ${target}:8076
+%{ endfor ~}
+                  labels:
+                    env: "dev"
+              relabel_configs:
+                - source_labels: [__address__]
+                  target_label: instance
+                  regex: "([^:]+)(:[0-9]+)?"
+                  replacement: "${"$"}{1}"
+%{ endfor ~}
+    grafana:
+      hosts:
+%{ for addr in grafana ~}
+        ${addr}:
+          grafana_prometheus_url: http://${prometheus[0]}:9090
 %{ endfor ~}
