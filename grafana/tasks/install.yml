@@ -34,3 +34,8 @@
     owner: root
     group: root
     mode: '0644'
+- name: Restart and enable Grafana
+  ansible.builtin.systemd:
+    state: started
+    enabled: true
+    name: grafana-server
