@@ -84,6 +84,7 @@ Install prometheus collection:
 
 ```bash
 ansible-galaxy collection install prometheus.prometheus
+ansible-galaxy collection install community.grafana
 ```
 
 Copy the file `playbook-monitoring.yml` to the jumphost, then execute it there:
@@ -91,4 +92,3 @@ Copy the file `playbook-monitoring.yml` to the jumphost, then execute it there:
 ```bash
 ansible-playbook -i hosts.yml playbook-monitoring.yml
 ```
-
