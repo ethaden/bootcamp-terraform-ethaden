@@ -177,3 +177,9 @@ variable "instance_initial_classic_snap_packages" {
   default = ""
   description = "Space separated list of Ubuntu classic SNAP packages to install during initialization of the instance (with snap install --classic)"
 }
+
+variable "zoneid_public_dns" {
+    type = string
+    default = "Z267DABJTL4JFI"
+    description = "The ID of a public DNS zone hosted at AWS in the solution architect account"
+}

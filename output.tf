@@ -91,3 +91,19 @@ output "cluster_data" {
 output "jumphost_public_ip" {
   value = aws_instance.jumphost.public_ip
 }
+
+output "jumphost_address" {
+    value = "jumphost.${var.username}.cp-bootcamp.${data.aws_route53_zone.public_dns.name}"
+}
+
+output "controlcenter_address" {
+    value = "control-center.${var.username}.cp-bootcamp.${data.aws_route53_zone.public_dns.name}"
+}
+
+output "prometheus_address" {
+    value = "prometheus.${var.username}.cp-bootcamp.${data.aws_route53_zone.public_dns.name}"
+}
+
+output "grafana_address" {
+    value = "grafana.${var.username}.cp-bootcamp.${data.aws_route53_zone.public_dns.name}"
+}
