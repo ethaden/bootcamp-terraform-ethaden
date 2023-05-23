@@ -19,6 +19,14 @@
     name: "{{ service }}"
     state: present
 
+- name: Copy Grafana Config
+  ansible.builtin.copy:
+    src: ./files/grafana.ini
+    dest: /etc/grafana/
+    owner: root
+    group: root
+    mode: '0644'
+
 - name: Install Prometheus Datasource
   ansible.builtin.template:
     src: ./templates/datasources/datasource.j2

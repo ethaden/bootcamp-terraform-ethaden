@@ -183,3 +183,14 @@ variable "zoneid_public_dns" {
     default = "Z267DABJTL4JFI"
     description = "The ID of a public DNS zone hosted at AWS in the solution architect account"
 }
+
+variable "proxy_user" {
+    type = string
+    default = "admin"
+    description = "The username for the http proxy"
+}
+
+variable "proxy_pass" {
+    type = string
+    description = "The password for the http proxy"
+}

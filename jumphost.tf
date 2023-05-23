@@ -105,6 +105,7 @@ data "cloudinit_config" "jumphost_init" {
         - python3-pip
         - certbot
         - python3-certbot-nginx
+        - apache2-utils
         # Run commands on first boot
         # https://cloudinit.readthedocs.io/en/latest/reference/examples.html#run-commands-on-first-boot
         write_files:
@@ -120,9 +121,14 @@ data "cloudinit_config" "jumphost_init" {
                   listen [::]:80;
                   root /var/www/html;
                   server_name control-center.${var.username}.cp-bootcamp.${data.aws_route53_zone.public_dns.name};
+                  location ^~ /.well-known/acme-challenge/ {
+                     // allow access to enable Let's Encrypt
+                  }
                   location / {
-                      proxy_pass https://controlcenter-0.${var.username}.${data.aws_route53_zone.private_dns.name}:9021/;
+                    proxy_pass https://controlcenter-0.${var.username}.${data.aws_route53_zone.private_dns.name}:9021/;
                     proxy_ssl_verify off;
+                    auth_basic "Authenticated Access";
+                    auth_basic_user_file /etc/nginx/htpasswd;
                   }
                 }
                 server {
@@ -130,9 +136,14 @@ data "cloudinit_config" "jumphost_init" {
                   listen [::]:80;
                   root /var/www/html;
                   server_name prometheus.${var.username}.cp-bootcamp.${data.aws_route53_zone.public_dns.name};
+                  location ^~ /.well-known/acme-challenge/ {
+                     // allow access to enable Let's Encrypt
+                  }
                   location / {
-                      proxy_pass http://prometheus.${var.username}.${data.aws_route53_zone.private_dns.name}:9090/;
+                    proxy_pass http://prometheus.${var.username}.${data.aws_route53_zone.private_dns.name}:9090/;
                     proxy_ssl_verify off;
+                    auth_basic "Authenticated Access";
+                    auth_basic_user_file /etc/nginx/htpasswd;
                   }
                 }
                 server {
@@ -140,10 +151,16 @@ data "cloudinit_config" "jumphost_init" {
                   listen [::]:80;
                   root /var/www/html;
                   server_name grafana.${var.username}.cp-bootcamp.${data.aws_route53_zone.public_dns.name};
+                  location ^~ /.well-known/acme-challenge/ {
+                     // allow access to enable Let's Encrypt
+                  }
                   location / {
                       proxy_pass http://grafana.${var.username}.${data.aws_route53_zone.private_dns.name}:3000/;
                     proxy_ssl_verify off;
                     proxy_set_header Host $http_host;
+                    proxy_set_header X-WEBAUTH-USER;
+                    auth_basic "Authenticated Access";
+                    auth_basic_user_file /etc/nginx/htpasswd;
                   }
                 }
         runcmd:
@@ -156,6 +173,7 @@ data "cloudinit_config" "jumphost_init" {
         - sudo systemctl restart nginx
         - sudo certbot --nginx -d control-center.${var.username}.cp-bootcamp.${data.aws_route53_zone.public_dns.name} -d prometheus.${var.username}.cp-bootcamp.${data.aws_route53_zone.public_dns.name} -d grafana.${var.username}.cp-bootcamp.${data.aws_route53_zone.public_dns.name} --non-interactive --agree-tos -m ${var.username}@confluent.io
         - sudo systemctl restart nginx
+        - sudo htpasswd -cb /etc/nginx/htpasswd ${var.proxy_user} ${var.proxy_pass}
     EOF
   }
 }
