@@ -1,0 +1,128 @@
+---
+all:
+  vars:
+    ansible_connection: ssh
+    ansible_user: ubuntu
+    ansible_become: true
+    #ansible_ssh_private_key_file: <<path-to-pem-file>>
+
+kafka:
+  children:
+    zookeeper:
+      hosts:
+        ip-172-30-1-78.eu-west-1.compute.internal:
+        ip-172-30-2-216.eu-west-1.compute.internal:
+        ip-172-30-3-225.eu-west-1.compute.internal:
+
+    kafka_controller:
+      hosts:
+
+    kafka_broker:
+      hosts:
+        ip-172-30-1-108.eu-west-1.compute.internal:
+          kafka_broker_custom_properties:
+            broker.rack: eu-west-1a
+        ip-172-30-1-30.eu-west-1.compute.internal:
+          kafka_broker_custom_properties:
+            broker.rack: eu-west-1a
+        ip-172-30-2-27.eu-west-1.compute.internal:
+          kafka_broker_custom_properties:
+            broker.rack: eu-west-1b
+        ip-172-30-3-100.eu-west-1.compute.internal:
+          kafka_broker_custom_properties:
+            broker.rack: eu-west-1c
+
+    kafka_connect:
+      hosts:
+        ip-172-30-1-32.eu-west-1.compute.internal:
+        ip-172-30-2-134.eu-west-1.compute.internal:
+
+    schema_registry:
+      hosts:
+        ip-172-30-1-186.eu-west-1.compute.internal:
+        ip-172-30-2-206.eu-west-1.compute.internal:
+
+    kafka_rest:
+      hosts:
+
+    ksql:
+      hosts:
+        ip-172-30-1-148.eu-west-1.compute.internal:
+        ip-172-30-2-83.eu-west-1.compute.internal:
+
+    control_center:
+      hosts:
+        ip-172-30-1-73.eu-west-1.compute.internal:
+
+monitoring:
+  children:
+    prometheus:
+      hosts:
+        ip-172-30-0-79.eu-west-1.compute.internal:
+          prometheus_scrape_configs:
+            - job_name: "zookeeper"
+              static_configs:
+                - targets:
+                    - "ip-172-30-1-78.eu-west-1.compute.internal:8079"
+                    - "ip-172-30-2-216.eu-west-1.compute.internal:8079"
+                    - "ip-172-30-3-225.eu-west-1.compute.internal:8079"
+                  labels:
+                    env: "dev"
+              relabel_configs:
+                - source_labels: [__address__]
+                  target_label: instance
+                  regex: "([^:]+)(:[0-9]+)?"
+                  replacement: "${1}"
+            - job_name: "kafka-broker"
+              static_configs:
+                - targets:
+                    - "ip-172-30-1-108.eu-west-1.compute.internal:8080"
+                    - "ip-172-30-1-30.eu-west-1.compute.internal:8080"
+                    - "ip-172-30-2-27.eu-west-1.compute.internal:8080"
+                    - "ip-172-30-3-100.eu-west-1.compute.internal:8080"
+                  labels:
+                    env: "dev"
+              relabel_configs:
+                - source_labels: [__address__]
+                  target_label: instance
+                  regex: "([^:]+)(:[0-9]+)?"
+                  replacement: "${1}"
+            - job_name: "schema-registry"
+              static_configs:
+                - targets:
+                    - "ip-172-30-1-186.eu-west-1.compute.internal:8078"
+                    - "ip-172-30-2-206.eu-west-1.compute.internal:8078"
+                  labels:
+                    env: "dev"
+              relabel_configs:
+                - source_labels: [__address__]
+                  target_label: instance
+                  regex: "([^:]+)(:[0-9]+)?"
+                  replacement: "${1}"
+            - job_name: "kafka-connect"
+              static_configs:
+                - targets:
+                    - "ip-172-30-1-32.eu-west-1.compute.internal:8077"
+                    - "ip-172-30-2-134.eu-west-1.compute.internal:8077"
+                  labels:
+                    env: "dev"
+              relabel_configs:
+                - source_labels: [__address__]
+                  target_label: instance
+                  regex: "([^:]+)(:[0-9]+)?"
+                  replacement: "${1}"
+            - job_name: "ksqldb"
+              static_configs:
+                - targets:
+                    - "ip-172-30-1-148.eu-west-1.compute.internal:8076"
+                    - "ip-172-30-2-83.eu-west-1.compute.internal:8076"
+                  labels:
+                    env: "dev"
+              relabel_configs:
+                - source_labels: [__address__]
+                  target_label: instance
+                  regex: "([^:]+)(:[0-9]+)?"
+                  replacement: "${1}"
+    grafana:
+      hosts:
+        ip-172-30-0-48.eu-west-1.compute.internal:

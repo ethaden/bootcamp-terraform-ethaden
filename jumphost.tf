@@ -53,6 +53,10 @@ resource "aws_instance" "jumphost" {
     region = var.region
   }
 
+  lifecycle {
+    prevent_destroy = true
+  }
+
   user_data = <<-EOF
     #!/bin/bash
     sudo apt-get upgrade && sudo apt-get dist-upgrade -y
@@ -88,7 +92,7 @@ resource "aws_route53_record" "jumphost-public" {
   records = [aws_eip.jumphost_eip.public_ip]
 }
 
-data "cloudinit_config" "jumphost_init" {
+data "cloudinit_config" "proxy_init" {
   gzip          = false
   base64_encode = false
   part {
@@ -122,7 +126,7 @@ data "cloudinit_config" "jumphost_init" {
                   root /var/www/html;
                   server_name control-center.${var.username}.cp-bootcamp.${data.aws_route53_zone.public_dns.name};
                   location ^~ /.well-known/acme-challenge/ {
-                     // allow access to enable Let's Encrypt
+                     # allow access to enable Let's Encrypt
                   }
                   location / {
                     proxy_pass https://controlcenter-0.${var.username}.${data.aws_route53_zone.private_dns.name}:9021/;
@@ -137,7 +141,7 @@ data "cloudinit_config" "jumphost_init" {
                   root /var/www/html;
                   server_name prometheus.${var.username}.cp-bootcamp.${data.aws_route53_zone.public_dns.name};
                   location ^~ /.well-known/acme-challenge/ {
-                     // allow access to enable Let's Encrypt
+                     # allow access to enable Let's Encrypt
                   }
                   location / {
                     proxy_pass http://prometheus.${var.username}.${data.aws_route53_zone.private_dns.name}:9090/;
@@ -152,13 +156,13 @@ data "cloudinit_config" "jumphost_init" {
                   root /var/www/html;
                   server_name grafana.${var.username}.cp-bootcamp.${data.aws_route53_zone.public_dns.name};
                   location ^~ /.well-known/acme-challenge/ {
-                     // allow access to enable Let's Encrypt
+                     # allow access to enable Let's Encrypt
                   }
                   location / {
                       proxy_pass http://grafana.${var.username}.${data.aws_route53_zone.private_dns.name}:3000/;
                     proxy_ssl_verify off;
                     proxy_set_header Host $http_host;
-                    proxy_set_header X-WEBAUTH-USER;
+                    proxy_set_header X-WEBAUTH-USER $remote_user;
                     auth_basic "Authenticated Access";
                     auth_basic_user_file /etc/nginx/htpasswd;
                   }
@@ -207,7 +211,11 @@ resource "aws_instance" "proxy" {
     region = var.region
   }
 
-  user_data = data.cloudinit_config.jumphost_init.rendered
+  user_data = data.cloudinit_config.proxy_init.rendered
+}
+
+output "proxy_cloud_init" {
+    value = data.cloudinit_config.proxy_init.rendered
 }
 
 resource "aws_eip" "proxy_eip" {
